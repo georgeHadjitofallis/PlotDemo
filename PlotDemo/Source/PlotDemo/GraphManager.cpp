@@ -87,7 +87,7 @@ void AGraphManager::SpawnBarCharts()
 		{
 			UStaticMeshComponent* StaticMeshComponent = Components[i];
 			UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
-			StaticMeshComponent->SetRelativeScale3D(FVector(1, 1, item *0.1));
+			StaticMeshComponent->SetRelativeScale3D(FVector(1, 1, FMath::Abs(item) *0.1));
 
 			SetBarCharColor(StaticMeshComponent, item);
 
@@ -95,10 +95,11 @@ void AGraphManager::SpawnBarCharts()
 			FVector boxExtent;
 			DroppedItem->GetActorBounds(false, origin, boxExtent);
 
-			// Get the current location  
 			FVector ActorLocation = DroppedItem->GetActorLocation();
-			// Move it slightly  
-			ActorLocation.Z += boxExtent.Z;
+			if(item >0)
+				ActorLocation.Z += boxExtent.Z;
+			else 
+				ActorLocation.Z -= boxExtent.Z;
 			// Set the location- this will blindly place the actor at the given location  
 			DroppedItem->SetActorLocation(ActorLocation, false);
 		}
