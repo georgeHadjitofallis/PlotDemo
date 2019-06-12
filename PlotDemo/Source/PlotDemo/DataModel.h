@@ -19,3 +19,18 @@ public:
 private:
 	TArray<Item> _data;
 };
+
+
+class PLOTDEMO_API DataModel3D
+{
+public:
+	DataModel3D();
+	~DataModel3D();
+
+	void LoadData3D(FString pathToFile);
+	FVector getItem3D(int index);
+	int GetNumberOfItems();
+	TArray<FVector> getData();
+private:
+	TArray<FVector> _data;
+};

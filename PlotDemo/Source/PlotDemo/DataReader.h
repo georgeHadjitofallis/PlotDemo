@@ -11,9 +11,10 @@ class PLOTDEMO_API DataReader
 {
 public:
 	
-	static TArray<Item> LoadFile(FString filePath);
-
+	static TArray<Item> LoadFile1D(FString filePath);
+	static TArray<FVector> LoadFile3D(FString filePath);
 private:
-	static TArray<Item> LoadFileInternal(FString filePath);
-	static TArray<Item> ParseLines(const TArray<FString>& lines);
+	static TArray<FString> LoadFileInternal(FString filePath);
+	static TArray<Item> ParseLinesToInt(const TArray<FString>& lines);
+	static TArray<FVector> ParseLinesToVector(const TArray<FString>& lines);
 };
