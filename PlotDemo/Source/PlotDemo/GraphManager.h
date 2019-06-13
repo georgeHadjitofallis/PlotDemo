@@ -7,7 +7,10 @@
 #include "GraphManager.generated.h"
 
 class ABarChart;
+class APlotPoint;
 class DataModel;
+class DataModel3D;
+
 UCLASS()
 class PLOTDEMO_API AGraphManager : public AActor
 {
@@ -27,11 +30,15 @@ public:
 
 	void LoadBarChartBP();
 
-	void LoadDefaultModel1D();
+	void LoadPlotPointBP();
+
+	void LoadDefaultModels();
 
 	void UpdateBarChart();
 
-	
+	void UpdatePlot();
+
+	void ClearPlotPoits();
 
 	UFUNCTION(BlueprintCallable)
 	int GetNumberOfItems1D();
@@ -47,17 +54,23 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABarChart> _barchartBlueprint;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<APlotPoint> _plotPointBlueprint;
 private:
 
 	void ClearBarCharts();
+
+	void SpawnPlotPoints();
 
 	void SpawnBarCharts();
 
 	void SetBarCharColor(UStaticMeshComponent * staticMeshComponent, float value);
 
 	TSharedPtr<DataModel> _dataModel;
+	TSharedPtr<DataModel3D> _dataModel3D;
 	TArray<ABarChart*> _barCharts;
-	
+	TArray<APlotPoint*> _plotPoints;
 	FVector _graphsDefaultStartingPosition;
 	int _currentIndex = 0;
 };

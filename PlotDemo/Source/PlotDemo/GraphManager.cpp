@@ -7,7 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "BarChart.h"
 #include "DataItem.h"
+#include "PlotPoint.h"
 #include "DataModel.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AGraphManager::AGraphManager()
@@ -16,12 +18,14 @@ AGraphManager::AGraphManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	LoadBarChartBP();
+	LoadPlotPointBP();
 
 	_graphsDefaultStartingPosition = FVector(-1800.0f, 1600.0f, -430.0f);
 
 	_dataModel = MakeShared<DataModel>();
+	_dataModel3D = MakeShared<DataModel3D>();
 
-	LoadDefaultModel1D();
+	LoadDefaultModels();
 }
 
 
@@ -31,7 +35,7 @@ void AGraphManager::BeginPlay()
 	Super::BeginPlay();
 	
 	UpdateBarChart();
-	
+	UpdatePlot();
 }
 
 // Called every frame
@@ -51,15 +55,41 @@ void AGraphManager::LoadBarChartBP()
 
 }
 
-void AGraphManager::LoadDefaultModel1D()
+void AGraphManager::LoadPlotPointBP()
+{
+	static ConstructorHelpers::FObjectFinder<UBlueprint> ItemBlueprint(TEXT("Blueprint'/Game/George/PlotPoint_BP.PlotPoint_BP'"));
+
+	if (ItemBlueprint.Object) {
+		_plotPointBlueprint = (UClass*)ItemBlueprint.Object->GeneratedClass;
+	}
+
+}
+
+void AGraphManager::LoadDefaultModels()
 {
 	_dataModel->LoadData1D(FPaths::GameDir() + "demo.txt");
+	_dataModel3D->LoadData3D(FPaths::GameDir() + "Data3D.txt");
 }
 
 void AGraphManager::UpdateBarChart()
 {
 	ClearBarCharts();
 	SpawnBarCharts();
+}
+
+void AGraphManager::UpdatePlot()
+{
+	ClearPlotPoits();
+	SpawnPlotPoints();
+}
+
+void AGraphManager::ClearPlotPoits()
+{
+	for (auto plotPoint : _plotPoints)
+	{
+		plotPoint->Destroy();
+	}
+	_plotPoints.Empty();
 }
 
 void AGraphManager::ClearBarCharts()
@@ -71,13 +101,40 @@ void AGraphManager::ClearBarCharts()
 	_barCharts.Empty();
 }
 
+void AGraphManager::SpawnPlotPoints()
+{
+	for (auto& item : _dataModel3D->getData())
+	{
+		FActorSpawnParameters SpawnParams;
+
+		APlotPoint* DroppedItem = GetWorld()->SpawnActor<APlotPoint>(_plotPointBlueprint, item, FRotator(0.0f, 0.0f, 0.0f), SpawnParams);
+		TArray<UStaticMeshComponent*> Components;
+		DroppedItem->GetComponents<UStaticMeshComponent>(Components);
+
+		_plotPoints.Add(DroppedItem);
+	}
+
+	FVector origin;
+	FVector boxExtent;
+	TArray<AActor*> actors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), _plotPointBlueprint, actors);
+	UGameplayStatics::GetActorArrayBounds(actors, false, origin, boxExtent);
+	DrawDebugBox(
+		GetWorld(),
+		origin,
+		boxExtent,
+		FColor(255, 0, 0), 
+		true, 
+		30, 
+		5
+	);
+}
+
 void AGraphManager::SpawnBarCharts()
 {
 	FVector currentSpawnPosition = _graphsDefaultStartingPosition;
 	for (auto& item : _dataModel->getItem1D(_currentIndex).getData())
 	{
-		UE_LOG(LogTemp, Warning, TEXT(" Test %f"), item);
-
 		FActorSpawnParameters SpawnParams;
 
 		ABarChart* DroppedItem = GetWorld()->SpawnActor<ABarChart>(_barchartBlueprint, currentSpawnPosition, FRotator(0.0f, 0.0f, 0.0f), SpawnParams);
@@ -103,7 +160,6 @@ void AGraphManager::SpawnBarCharts()
 			// Set the location- this will blindly place the actor at the given location  
 			DroppedItem->SetActorLocation(ActorLocation, false);
 		}
-
 		
 		DroppedItem->_barChartValue = item;
 		_barCharts.Add(DroppedItem);
