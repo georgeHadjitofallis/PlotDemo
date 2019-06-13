@@ -10,6 +10,8 @@
 #include "PlotPoint.h"
 #include "DataModel.h"
 #include "DrawDebugHelpers.h"
+#include "Developer/DesktopPlatform/Public/IDesktopPlatform.h"
+#include "Developer/DesktopPlatform/Public/DesktopPlatformModule.h"
 
 // Sets default values
 AGraphManager::AGraphManager()
@@ -67,8 +69,8 @@ void AGraphManager::LoadPlotPointBP()
 
 void AGraphManager::LoadDefaultModels()
 {
-	_dataModel->LoadData1D(FPaths::GameDir() + "demo.txt");
-	_dataModel3D->LoadData3D(FPaths::GameDir() + "Data3D.txt");
+	_dataModel->LoadData1D(FPaths::GameDir() + "DataFiles/demo.txt");
+	_dataModel3D->LoadData3D(FPaths::GameDir() + "DataFiles/Data3D.txt");
 }
 
 void AGraphManager::UpdateBarChart()
@@ -80,6 +82,7 @@ void AGraphManager::UpdateBarChart()
 void AGraphManager::UpdatePlot()
 {
 	ClearPlotPoits();
+	FlushPersistentDebugLines(GetWorld());
 	SpawnPlotPoints();
 }
 
@@ -214,4 +217,34 @@ void AGraphManager::DecreaseIndex()
 		_currentIndex--;
 		UpdateBarChart();
 	}
+}
+
+void AGraphManager::OpenFileDialog(const FString& DialogTitle, const FString& DefaultPath, const FString& FileTypes, TArray<FString>& OutFileNames)
+{
+	if (GEngine)
+	{
+		if (GEngine->GameViewport)
+		{
+			void* ParentWindowHandle = GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle();
+			IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+			if (DesktopPlatform)
+			{
+				uint32 SelectionFlag = 0; 
+				DesktopPlatform->OpenFileDialog(ParentWindowHandle, DialogTitle, DefaultPath, FString(""), FileTypes, SelectionFlag, OutFileNames);
+			}
+		}
+	}
+}
+
+void AGraphManager::LoadBarChartFile(const FString& File)
+{
+	_dataModel->LoadData1D(File);
+	_currentIndex = 0;
+	UpdateBarChart();
+}
+
+void AGraphManager::LoadPLotFile(const FString& File)
+{
+	_dataModel3D->LoadData3D(File);
+	UpdatePlot();
 }

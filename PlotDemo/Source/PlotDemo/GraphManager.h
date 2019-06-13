@@ -52,6 +52,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DecreaseIndex();
 
+	UFUNCTION(BlueprintCallable, Category = "FilePicker")
+	void OpenFileDialog(const FString& DialogTitle, const FString& DefaultPath, const FString& FileTypes, TArray<FString>& OutFileNames);
+
+	UFUNCTION(BlueprintCallable, Category = "FilePicker")
+	void LoadBarChartFile(const FString& File);
+
+	UFUNCTION(BlueprintCallable, Category = "FilePicker")
+	void LoadPLotFile(const FString & File);
+
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABarChart> _barchartBlueprint;
 
